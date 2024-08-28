@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telugu Speech Recognition</title>
+</head>
+<body>
+    <h2>Click the button and speak in Telugu:</h2>
+    <button id="start-record-btn">Start Recording</button>
+    <p id="output">Your speech will appear here...</p>
+
+    <script>
+        // Check if the browser supports the Web Speech API
+        window.SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (!window.SpeechRecognition) {
+            alert("Your browser does not support speech recognition.");
+        } else {
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'te-IN'; // Set the language to Telugu (India)
+            recognition.interimResults = false; // We only want the final transcript
+            recognition.maxAlternatives = 1;
+
+            // Start recording when the button is clicked
+            document.getElementById('start-record-btn').addEventListener('click', () => {
+                recognition.start();
+            });
+
+            // Display the recognized text when speech recognition is successful
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('output').textContent = "Recognized text: " + transcript;
+            };
+
+            // Handle any errors
+            recognition.onerror = function(event) {
+                console.error("Speech recognition error: " + event.error);
+            };
+
+            // Inform the user that the recording has stopped
+            recognition.onend = function() {
+                console.log("Speech recognition has stopped.");
+            };
+        }
+    </script>
+</body>
+</html>

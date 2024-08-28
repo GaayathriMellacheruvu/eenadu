@@ -1,0 +1,13 @@
+azure-ai-textanalytics==5.3.0
+azure-cognitiveservices-speech==1.40.0
+azure-common==1.1.28
+azure-core==1.30.2
+openai
+uvicorn
+fastapi
+requests
+streamlit
+pydantic
+python-dotenv
+python-multipart
+speechrecognition

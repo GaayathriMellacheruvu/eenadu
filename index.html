@@ -3,226 +3,243 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EENADU AI JOURNALIST POC</title>
+    <title>Telugu Text and Audio Processing</title>
     <style>
         body {
-            background-color: #121212;
-            color: #FFFFFF;
             font-family: Arial, sans-serif;
-            text-align: center;
+            margin: 20px;
+            padding: 0;
         }
         .container {
             max-width: 600px;
             margin: 0 auto;
-        }
-        #logo {
-            width: 100px;
-        }
-        .button {
-            background-color: #0B5F59;
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            text-align: center;
-            display: inline-block;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 5px;
-        }
-        .button:disabled {
-            background-color: grey;
-        }
-        .response {
-            background-color: #2B2B2B;
-            padding: 10px;
-            margin-top: 10px;
+            padding: 20px;
+            border: 1px solid #ddd;
             border-radius: 5px;
-            text-align: left;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        #record-speech-div {
-            display: none;
+        h1 {
+            text-align: center;
+        }
+        input[type="text"], input[type="file"], button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <img id="logo" src="logo.png" alt="EENADU Logo">
-        <h1>EENADU AI JOURNALIST POC</h1>
-        <p>Current Session ID: <span id="sessionIdDisplay">Not started</span></p>
-        <button id="generateSessionBtn" class="button">Generate New Session ID</button>
 
-        <div id="sessionControls" style="display:none;">
-            <button id="startSessionBtn" class="button">Start Session</button>
-        </div>
+<div class="container">
+    <h1>Telugu Text and Audio Processing</h1>
 
-        <div id="actions" style="display:none;">
-            <h3>Choose an Action</h3>
-            <select id="actionSelector" class="button">
-                <option value="uploadAudio">Upload Audio</option>
-                <option value="recordAudio">Record Audio</option>
-            </select>
+    <label for="sessionId">Session ID:</label>
+    <input type="text" id="sessionId" placeholder="Enter session ID">
 
-            <!-- File Upload Section -->
-            <div id="uploadAudioSection">
-                <input type="file" id="audioFileInput" accept=".wav,.mp3">
-                <input type="text" id="languageCode" placeholder="Enter Language Code" value="te-IN">
-                <button id="submitBtn" class="button">Submit</button>
-            </div>
+    <button onclick="startSession()">Start Session</button>
 
-            <!-- Speech Recording Section -->
-            <div id="record-speech-div">
-                <button id="recordBtn" class="button">Start Recording</button>
-                <span id="record-status">Not Recording</span>
-                <br>
-                <button id="stopBtn" class="button" disabled>Stop Recording</button>
-            </div>
+    <button id="startRecording">Start Recording</button>
+    <button id="stopRecording" disabled>Stop Recording</button>
+    <button id="submitRecording" disabled>Submit</button>
+    <p id="transcript">Transcript will appear here...</p>
 
-            <div id="endSessionSection" style="margin-top: 20px;">
-                <button id="endSessionBtn" class="button">End Session</button>
-            </div>
-        </div>
+    <label for="audioFile">Upload Audio:</label>
+    <input type="file" id="audioFile">
 
-        <div id="responses">
-            <h3>Responses:</h3>
-            <div id="responseLog"></div>
-        </div>
+    <button onclick="uploadAudio()">Upload and Transcribe Audio</button>
 
-        <div id="spokenTextSection" style="margin-top: 20px;">
-            <h3>Spoken Text:</h3>
-            <div id="spokenTextDisplay" class="response">Text will appear here.</div>
-        </div>
+    <button onclick="endSession()">End Session</button>
+
+    <div class="output" id="output">
+        <h3>Output</h3>
+        <pre id="outputText"></pre>
     </div>
+</div>
 
-    <script>
-        let sessionId = null;
-        let recognition;
-        let uploadedText = '';  // Store the uploaded transcribed text
-        let spokenText = '';
+<script>
+    let recognition;
+    let isRecording = false;
+    let recordedText = "";
 
-        function logResponse(message) {
-            const responseLog = document.getElementById("responseLog");
-            const responseEntry = document.createElement("div");
-            responseEntry.className = "response";
-            responseEntry.textContent = message;
-            responseLog.appendChild(responseEntry);
+    document.addEventListener('DOMContentLoaded', () => {
+        const transcriptElement = document.getElementById('transcript');
+        const startRecordingButton = document.getElementById('startRecording');
+        const stopRecordingButton = document.getElementById('stopRecording');
+        const submitButton = document.getElementById('submitRecording');
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.lang = 'te-IN'; // Set the language to Telugu
+            recognition.interimResults = false;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                recordedText = transcript;
+                transcriptElement.innerText = "Recorded Text: " + transcript;
+                submitButton.disabled = false;
+            };
+
+            recognition.onerror = (event) => {
+                console.error("Error occurred in speech recognition: ", event.error);
+                alert("Speech recognition error: " + event.error);
+            };
+
+            startRecordingButton.addEventListener('click', () => {
+                if (!isRecording) {
+                    recognition.start();
+                    startRecordingButton.disabled = true;
+                    stopRecordingButton.disabled = false;
+                    isRecording = true;
+                    console.log("Recording started...");
+                }
+            });
+
+            stopRecordingButton.addEventListener('click', () => {
+                if (isRecording) {
+                    recognition.stop();  // Stop recording
+                    isRecording = false;
+                    console.log("Recording stopped...");
+                    startRecordingButton.disabled = false;
+                    stopRecordingButton.disabled = true;
+                }
+            });
+
+        } else {
+            alert("Your browser does not support Speech Recognition.");
         }
 
-        function displayText(text) {
-            const spokenTextDisplay = document.getElementById("spokenTextDisplay");
-            spokenTextDisplay.textContent = text;
-            spokenText = text;  // Update spoken text
-        }
-
-        document.getElementById("generateSessionBtn").addEventListener("click", function() {
-            sessionId = 'c02326e6-27c4-4865-ae91-b107571697a5'; // Mock session ID
-            document.getElementById("sessionIdDisplay").textContent = sessionId;
-            document.getElementById("sessionControls").style.display = "block";
-            logResponse("Generated new session ID: " + sessionId);
+        submitButton.addEventListener('click', () => {
+            submitTeluguText(recordedText);
         });
+    });
 
-        document.getElementById("startSessionBtn").addEventListener("click", function() {
-            fetch("https://eenadu-backend.onrender.com/start-session/", {
+    async function submitTeluguText(teluguText) {
+        const sessionId = document.getElementById("sessionId").value;
+        const url = "https://eenadu-backend.onrender.com/telugu-text-entry/";
+        const payload = {
+            session_id: sessionId,
+            language: teluguText  // Recorded text is now passed as `language`
+        };
+
+        try {
+            const response = await fetch(url, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ session_id: sessionId })
-            })
-            .then(response => response.json())
-            .then(data => {
-                logResponse("Session started: " + JSON.stringify(data));
-                document.getElementById("actions").style.display = "block";
-            })
-            .catch(error => logResponse("Failed to start session: " + error));
-        });
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
 
-        document.getElementById("actionSelector").addEventListener("change", function() {
-            const action = this.value;
-            if (action === "uploadAudio") {
-                document.getElementById("uploadAudioSection").style.display = "block";
-                document.getElementById("record-speech-div").style.display = "none";
-            } else {
-                document.getElementById("uploadAudioSection").style.display = "none";
-                document.getElementById("record-speech-div").style.display = "block";
-            }
-        });
-
-        document.getElementById("submitBtn").addEventListener("click", function() {
-            const fileInput = document.getElementById("audioFileInput");
-            const languageCode = document.getElementById("languageCode").value;
-
-            if (fileInput.files.length === 0) {
-                logResponse("No audio file selected.");
-                return;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const formData = new FormData();
-            formData.append("file", fileInput.files[0]);
-            formData.append("language", languageCode);
-            formData.append("session_id", sessionId);
+            const data = await response.json();
+            document.getElementById("outputText").innerText = JSON.stringify(data, null, 2);
+        } catch (error) {
+            console.error("Error submitting Telugu text:", error);
+        }
+    }
+    
+    async function startSession() {
+        const sessionId = document.getElementById("sessionId").value;
+        const url = "https://eenadu-backend.onrender.com/start-session/";
+        const payload = {
+            session_id: sessionId,
+            language: "te-IN"
+        };
 
-            fetch("https://eenadu-backend.onrender.com/upload-audio/", {
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            document.getElementById("outputText").innerText = data.message;
+        } catch (error) {
+            console.error("Error starting session:", error);
+        }
+    }
+
+    async function uploadAudio() {
+        const sessionId = document.getElementById("sessionId").value;
+        const fileInput = document.getElementById("audioFile");
+        const file = fileInput.files[0];
+        const url = "https://eenadu-backend.onrender.com/upload-audio/";
+        const formData = new FormData();
+        formData.append("session_id", sessionId);
+        formData.append("file", file);
+        formData.append("language", "te-IN");
+
+        try {
+            const response = await fetch(url, {
                 method: "POST",
                 body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                uploadedText = data.transcribed_text || ''; // Store the uploaded transcribed text
-                logResponse("Audio uploaded: " + JSON.stringify(data));
-            })
-            .catch(error => logResponse("Failed to upload audio: " + error));
-        });
+            });
 
-        // Initialize speech recognition
-        if (window.SpeechRecognition || window.webkitSpeechRecognition) {
-            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'te-IN'; // Telugu language
-            recognition.interimResults = false;
-            recognition.continuous = true;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
-            recognition.onresult = function(event) {
-                const transcript = Array.from(event.results)
-                    .map(result => result[0].transcript)
-                    .join('');
-                displayText(transcript);
-            };
-
-            recognition.onerror = function(event) {
-                logResponse("Speech recognition error: " + event.error);
-            };
-        } else {
-            logResponse("Speech Recognition API is not supported in this browser.");
+            const data = await response.json();
+            document.getElementById("outputText").innerText = "Transcribed Text: " + data.transcribed_text;
+        } catch (error) {
+            console.error("Error uploading audio:", error);
         }
+    }
 
-        document.getElementById("recordBtn").addEventListener("click", function() {
-            if (recognition) {
-                recognition.start();
-                document.getElementById("record-status").textContent = "Recording...";
-                document.getElementById("recordBtn").disabled = true;
-                document.getElementById("stopBtn").disabled = false;
-            } else {
-                logResponse("Speech recognition is not available.");
-            }
-        });
+    async function endSession() {
+        const sessionId = document.getElementById("sessionId").value;
+        const url = "https://eenadu-backend.onrender.com/end-session/";
+        const payload = {
+            session_id: sessionId
+        };
 
-        document.getElementById("stopBtn").addEventListener("click", function() {
-            if (recognition) {
-                recognition.stop();
-                document.getElementById("record-status").textContent = "Recording stopped";
-                document.getElementById("recordBtn").disabled = false;
-                document.getElementById("stopBtn").disabled = true;
-            }
-        });
-
-        document.getElementById("endSessionBtn").addEventListener("click", function() {
-            const compiledSpeechToText = uploadedText + ' ' + spokenText; // Merge both texts
-            fetch("https://eenadu-backend.onrender.com/end-session/", {
+        try {
+            const response = await fetch(url, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ session_id: sessionId, compiled_speech_to_text: compiledSpeechToText })
-            })
-            .then(response => response.json())
-            .then(data => logResponse("Session ended: " + JSON.stringify(data)))
-            .catch(error => logResponse("Failed to end session: " + error));
-        });
-    </script>
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            document.getElementById("outputText").innerText = JSON.stringify(data, null, 2);
+        } catch (error) {
+            console.error("Error ending session:", error);
+        }
+    }
+</script>
+
 </body>
 </html>

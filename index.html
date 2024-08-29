@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EENADU AI JOURNALIST POC</title>
+    <title>EENADU AI JOURNALIST COPILOT</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -51,10 +51,12 @@
             background-color: #0a5c69;
             color: white;
             cursor: pointer;
+            transition: transform 0.2s ease-in-out;
         }
 
         button:hover {
             background-color: #084c59;
+            transform: translateY(-3px);
         }
 
         .output {
@@ -74,6 +76,29 @@
             text-align: center;
             display: none;
             color: #0a5c69;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .loading-symbol {
+            border: 4px solid #0a5c69;
+            border-top: 4px solid #e9f6f7;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -81,33 +106,33 @@
 <body>
 
     <div class="container">
-        <h1><img src="logo.png" alt="Logo" width="90"> EENADU AI JOURNALIST POC</h1>
+        <h1><img src="logo.png" alt="Logo" width="90"> EENADU AI JOURNALIST COPILOT</h1>
 
         <label for="sessionId">Session ID:</label>
         <input type="text" id="sessionId" placeholder="Session ID will be auto-generated" readonly>
 
-        <button id="startSession">Start Session</button>
+        <button id="startSession">🚀 Start Action</button>
 
         <label for="actionSelect">Choose Action:</label>
         <select id="actionSelect">
-            <option value="record">Start Recording</option>
-            <option value="upload">Upload Audio</option>
+            <option value="record">🎙 Start Recording</option>
+            <option value="upload">📁 Upload Audio</option>
         </select>
 
         <div id="recordingControls">
-            <button id="startRecording">Start Recording</button>
-            <button id="stopRecording" disabled>Stop Recording</button>
-            <button id="submitRecording" disabled>Submit</button>
+            <button id="startRecording">🎤 Start Recording</button>
+            <button id="stopRecording" disabled>⏹ Stop Recording</button>
+            <button id="submitRecording" disabled>📤 Submit</button>
             <p id="transcript">Transcript will appear here...</p>
         </div>
 
         <div id="uploadControls" style="display:none;">
             <label for="audioFile">Upload Audio:</label>
             <input type="file" id="audioFile">
-            <button id="uploadAudio">Upload and Transcribe Audio</button>
+            <button id="uploadAudio">🎧 Upload and Transcribe Audio</button>
         </div>
 
-        <button id="endSession">End Session</button>
+        <button id="endSession">🔚 End Session</button>
 
         <div class="output" id="output">
             <h3>Output</h3>
@@ -115,7 +140,8 @@
         </div>
 
         <div class="loading" id="loading">
-            <p>Loading, please wait...</p>
+            <span class="loading-symbol"></span>
+            <span id="loadingMessage">Loading, please wait...</span>
         </div>
     </div>
 

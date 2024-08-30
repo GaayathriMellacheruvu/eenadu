@@ -8,13 +8,30 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            margin: 0;
             padding: 0;
+            background-color: #f0f4f8;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #0a5c69;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
             background-color: #f0f4f8;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 100%;
             margin: 0 auto;
             padding: 20px;
             border: 1px solid #ccc;
@@ -100,55 +117,91 @@
                 transform: rotate(360deg);
             }
         }
+
+        .session-item {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .session-item:hover {
+            background-color: #084c59;
+        }
     </style>
 </head>
 
 <body>
 
-    <div class="container">
-        <h1><img src="logo.png" alt="Logo" width="90"> EENADU AI JOURNALIST COPILOT</h1>
-
-        <label for="sessionId">Session ID:</label>
-        <input type="text" id="sessionId" placeholder="Session ID will be auto-generated" readonly>
-
-        <button id="startSession">🚀 Start Action</button>
-
-        <label for="actionSelect">Choose Action:</label>
-        <select id="actionSelect">
-            <option value="record">🎙 Start Recording</option>
-            <option value="upload">📁 Upload Audio</option>
-        </select>
-
-        <div id="recordingControls">
-            <button id="startRecording">🎤 Start Recording</button>
-            <button id="stopRecording" disabled>⏹ Stop Recording</button>
-            <button id="submitRecording" disabled>📤 Submit</button>
-            <p id="transcript">Transcript will appear here...</p>
-        </div>
-
-        <div id="uploadControls" style="display:none;">
-            <label for="audioFile">Upload Audio:</label>
-            <input type="file" id="audioFile">
-            <button id="uploadAudio">🎧 Upload and Transcribe Audio</button>
-        </div>
-
-        <button id="endSession">🔚 End Session</button>
-
-        <div class="output" id="output">
-            <h3>Output</h3>
-            <pre id="outputText"></pre>
-        </div>
-
-        <div class="loading" id="loading">
-            <span class="loading-symbol"></span>
-            <span id="loadingMessage">Loading, please wait...</span>
-        </div>
+    <div class="sidebar">
+        <h2>Sessions</h2>
+        <div id="sessionList"></div>
     </div>
+
+    <div class="main-content">
+        <div class="container">
+            <h1><img src="logo.png" alt="Logo" width="90"> EENADU AI JOURNALIST COPILOT</h1>
+        
+            <label for="sessionId">Session ID:</label>
+            <input type="text" id="sessionId" placeholder="Session ID will be auto-generated" readonly>
+        
+            <button id="startSession">🚀 Start Action</button>
+        
+            <!-- Add a new section to display session list -->
+            <div id="sessionColumn">
+                <h3>Available Sessions</h3>
+                <div id="sessionList"></div>
+            </div>
+        
+            <label for="actionSelect">Choose Action:</label>
+            <select id="actionSelect">
+                <option value="record">🎙 Start Recording</option>
+                <option value="upload">📁 Upload Audio</option>
+            </select>
+        
+            <div id="recordingControls">
+                <button id="startRecording">🎤 Start Recording</button>
+                <button id="stopRecording" disabled>⏹ Stop Recording</button>
+                <button id="submitRecording" disabled>📤 Submit</button>
+                <p id="transcript">Transcript will appear here...</p>
+            </div>
+        
+            <div id="uploadControls" style="display:none;">
+                <label for="audioFile">Upload Audio:</label>
+                <input type="file" id="audioFile">
+                <button id="uploadAudio">🎧 Upload and Transcribe Audio</button>
+            </div>
+        
+            <button id="endSession">🔚 End Session</button>
+        
+            <div class="output" id="output">
+                <h3>Output</h3>
+                <pre id="outputText"></pre>
+            </div>
+        
+            <div class="loading" id="loading">
+                <span class="loading-symbol"></span>
+                <span id="loadingMessage">Loading, please wait...</span>
+            </div>
+        </div>
+            </div>
 
     <script>
         let recognition;
         let isRecording = false;
         let recordedText = "";
+
+        
+    function showLoading(message) {
+        const loadingElement = document.getElementById("loading");
+        loadingElement.innerText = message;
+        loadingElement.style.display = "block";
+    }
+
+    function hideLoading() {
+        const loadingElement = document.getElementById("loading");
+        loadingElement.style.display = "none";
+    }
 
         document.addEventListener('DOMContentLoaded', () => {
             const sessionIdElement = document.getElementById('sessionId');
@@ -162,6 +215,7 @@
             const uploadAudioButton = document.getElementById('uploadAudio');
             const loadingElement = document.getElementById('loading');
             const transcriptElement = document.getElementById('transcript');
+            const sessionList = document.getElementById('sessionList');
 
             // Auto-generate session ID
             sessionIdElement.value = `session-${Date.now()}`;
@@ -235,11 +289,14 @@
             startSessionButton.addEventListener('click', startSession);
             uploadAudioButton.addEventListener('click', uploadAudio);
             document.getElementById('endSession').addEventListener('click', endSession);
+
+            // Load session list
+            // loadSessions();
         });
 
         async function startSession() {
             const sessionId = document.getElementById("sessionId").value;
-            const url = "https://eenadu-backend.onrender.com/start-session/";
+            const url = "https://eenadu-backend-latest-1.onrender.com/start-session/";
             const payload = {
                 session_id: sessionId,
                 language: "te-IN"
@@ -261,6 +318,7 @@
 
                 const data = await response.json();
                 document.getElementById("outputText").innerText = data.message;
+                // loadSessions(); // Reload sessions list
             } catch (error) {
                 console.error("Error starting session:", error);
             } finally {
@@ -272,7 +330,7 @@
             const sessionId = document.getElementById("sessionId").value;
             const fileInput = document.getElementById("audioFile");
             const file = fileInput.files[0];
-            const url = "https://eenadu-backend.onrender.com/upload-audio/";
+            const url = "https://eenadu-backend-latest-1.onrender.com/upload-audio/";
             const formData = new FormData();
             formData.append("session_id", sessionId);
             formData.append("file", file);
@@ -299,45 +357,45 @@
         }
 
         async function submitTeluguText(recordedText) {
-    const sessionId = document.getElementById("sessionId").value;
-    const url = "https://eenadu-backend.onrender.com/telugu-text-entry/";
-    const payload = {
-        session_id: sessionId,
-        language: recordedText
-    };
+            const sessionId = document.getElementById("sessionId").value;
+            const url = "https://eenadu-backend-latest-1.onrender.com/telugu-text-entry/";
+            const payload = {
+                session_id: sessionId,
+                language: recordedText
+            };
 
-    console.log("Submitting text to Telugu Text Entry API:", payload); // Log payload for debugging
+            console.log("Submitting text to Telugu Text Entry API:", payload); // Log payload for debugging
 
-    try {
-        showLoading("Submitting text...");
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
+            try {
+                showLoading("Submitting text...");
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("API Response:", data); // Log API response for debugging
+
+                // Display the API response in the output container
+                document.getElementById("outputText").innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                console.error("Error submitting Telugu text:", error);
+                document.getElementById("outputText").innerText = `Error: ${error.message}`;
+            } finally {
+                hideLoading();
+            }
         }
-
-        const data = await response.json();
-        console.log("API Response:", data); // Log API response for debugging
-
-        // Display the API response in the output container
-        document.getElementById("outputText").innerText = JSON.stringify(data, null, 2);
-    } catch (error) {
-        console.error("Error submitting Telugu text:", error);
-        document.getElementById("outputText").innerText = `Error: ${error.message}`;
-    } finally {
-        hideLoading();
-    }
-}
 
         async function endSession() {
             const sessionId = document.getElementById("sessionId").value;
-            const url = `https://eenadu-backend.onrender.com/end-session/`;
+            const url = `https://eenadu-backend-latest-1.onrender.com/end-session/`;
 
             try {
                 showLoading("Ending session...");
@@ -355,23 +413,82 @@
 
                 const data = await response.json();
                 document.getElementById("outputText").innerText = JSON.stringify(data, null, 2);
+                // loadSessions(); // Reload sessions list
             } catch (error) {
                 console.error("Error ending session:", error);
             } finally {
                 hideLoading();
             }
         }
+        document.addEventListener('DOMContentLoaded', () => {
+    const sessionList = document.getElementById('sessionList');
+    const sessionIdElement = document.getElementById('sessionId');
+    const outputText = document.getElementById('outputText');
+    
+    // Load sessions when the page is loaded
+    loadSessions();
 
-        function showLoading(message) {
-            const loadingElement = document.getElementById("loading");
-            loadingElement.innerText = message;
-            loadingElement.style.display = "block";
-        }
+    async function loadSessions() {
+        const url = "https://eenadu-backend-latest-1.onrender.com/sessions/";
 
-        function hideLoading() {
-            const loadingElement = document.getElementById("loading");
-            loadingElement.style.display = "none";
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            sessionList.innerHTML = '';
+
+            if (data.sessions && data.sessions.length > 0) {
+                data.sessions.forEach(sessionId => {
+                    const div = document.createElement('div');
+                    div.className = 'session-item';
+                    div.textContent = sessionId;
+                    div.onclick = () => updateSessionId(sessionId);
+                    sessionList.appendChild(div);
+                });
+            } else {
+                sessionList.innerHTML = '<div>No sessions available</div>';
+            }
+        } catch (error) {
+            console.error("Error loading sessions:", error);
+            sessionList.innerHTML = '<div>Error loading sessions</div>';
         }
+    }
+
+    async function updateSessionId(sessionId) {
+        sessionIdElement.value = sessionId;
+        // await fetchSessionDetails(sessionId);
+    }
+
+    async function fetchSessionDetails(sessionId) {
+        const url = `https://eenadu-backend-latest-1.onrender.com/fetch-session/${sessionId}/`;
+
+        try {
+            showLoading("Fetching session details...");
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            outputText.innerText = `
+                Session ID: ${data.session_id}
+                Compiled Speech to Text: ${data.compiled_speech_to_text}
+                Cleaned Speech to Text: ${data.cleaned_speech_to_text || "N/A"}
+                Cleaned File Text: ${data.cleaned_file_text || "N/A"}
+            `;
+        } catch (error) {
+            console.error("Error fetching session details:", error);
+            outputText.innerText = `Error: ${error.message}`;
+        } finally {
+            hideLoading();
+        }
+    }
+
+});
+
     </script>
 </body>
 

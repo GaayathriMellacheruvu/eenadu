@@ -296,7 +296,7 @@
 
         async function startSession() {
             const sessionId = document.getElementById("sessionId").value;
-            const url = "https://eenadu-backend-latest-1.onrender.com/start-session/";
+            const url = "https://eenadu-backend.onrender.com/start-session/";
             const payload = {
                 session_id: sessionId,
                 language: "te-IN"
@@ -330,7 +330,7 @@
             const sessionId = document.getElementById("sessionId").value;
             const fileInput = document.getElementById("audioFile");
             const file = fileInput.files[0];
-            const url = "https://eenadu-backend-latest-1.onrender.com/upload-audio/";
+            const url = "https://eenadu-backend.onrender.com/upload-audio/";
             const formData = new FormData();
             formData.append("session_id", sessionId);
             formData.append("file", file);
@@ -358,7 +358,7 @@
 
         async function submitTeluguText(recordedText) {
             const sessionId = document.getElementById("sessionId").value;
-            const url = "https://eenadu-backend-latest-1.onrender.com/telugu-text-entry/";
+            const url = "https://eenadu-backend.onrender.com/telugu-text-entry/";
             const payload = {
                 session_id: sessionId,
                 language: recordedText
@@ -395,7 +395,7 @@
 
         async function endSession() {
             const sessionId = document.getElementById("sessionId").value;
-            const url = `https://eenadu-backend-latest-1.onrender.com/end-session/`;
+            const url = `https://eenadu-backend.onrender.com/end-session/`;
 
             try {
                 showLoading("Ending session...");
@@ -429,7 +429,7 @@
     loadSessions();
 
     async function loadSessions() {
-        const url = "https://eenadu-backend-latest-1.onrender.com/sessions/";
+        const url = "https://eenadu-backend.onrender.com/sessions/";
 
         try {
             const response = await fetch(url);
@@ -463,7 +463,7 @@
     }
 
     async function fetchSessionDetails(sessionId) {
-        const url = `https://eenadu-backend-latest-1.onrender.com/fetch-session/${sessionId}/`;
+        const url = `https://eenadu-backend.onrender.com/fetch-session/${sessionId}/`;
 
         try {
             showLoading("Fetching session details...");

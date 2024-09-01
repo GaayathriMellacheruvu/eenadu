@@ -1,0 +1,206 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f4f8;
+    display: flex;
+    min-height: 100vh;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+.sidebar {
+    width: 250px;
+    min-width: 250px; /* Ensures the sidebar doesn't shrink */
+    background-color: #0a5c69;
+    color: white;
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+    height: 100vh;
+    overflow-y: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
+
+.main-content {
+    margin-left: 290px; /* Add gap between sidebar and main content */
+    padding: 20px;
+    background-color: #f0f4f8;
+    flex: 1;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    box-sizing: border-box;
+}
+
+.container {
+    max-width: 100%; /* Ensure the container doesn't exceed the screen width */
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    background-color: white;
+    width: 100%;
+    box-sizing: border-box; /* Include padding and border in the element's width */
+}
+
+h1 {
+    text-align: center;
+    color: #0a5c69;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+h1 img {
+    margin-right: 10px;
+    width: 50px; /* Adjust logo size for responsiveness */
+    height: auto;
+}
+
+input[type="text"],
+input[type="file"],
+select,
+button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #0a5c69;
+    font-size: 16px;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+button {
+    background-color: #0a5c69;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+button:hover {
+    background-color: #084c59;
+    transform: translateY(-3px);
+}
+
+.output {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+
+#outputText {
+    white-space: pre-wrap; /* Ensures the JSON text is displayed in multi-line format */
+    word-wrap: break-word; /* Breaks long words to fit within the container */
+    max-height: 400px; /* Adjust this value as needed for your design */
+    overflow: hidden; /* Hides any overflow content */
+}
+
+.loading {
+    text-align: center;
+    display: none;
+    color: #0a5c69;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.loading-symbol {
+    border: 4px solid #0a5c69;
+    border-top: 4px solid #e9f6f7;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.session-item {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.session-item:hover {
+    background-color: #084c59;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        position: relative;
+        box-shadow: none;
+        margin-bottom: 20px;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 10px;
+    }
+
+    h1 {
+        font-size: 1.2rem;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    select,
+    button {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .output {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .loading-symbol {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1rem;
+    }
+
+    .container {
+        padding: 10px;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    select,
+    button {
+        font-size: 12px;
+        padding: 6px;
+    }
+
+    .output {
+        font-size: 12px;
+        padding: 6px;
+    }
+}

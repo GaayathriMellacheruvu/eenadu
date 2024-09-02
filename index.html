@@ -10,75 +10,97 @@
 
 <body>
 
-    <div class="sidebar">
+    <!-- Invisible square over the three lines button -->
+    <div class="toggle-square" onclick="toggleSessionList()"></div>
+    <button class="toggle-button" onclick="toggleSessionList()">☰</button>
+
+    <div class="sidebar" id="sidebar">
         <h2>NEWS HIGHLIGHTS</h2>
         <div id="sessionList"></div>
     </div>
 
-    <div class="main-content">
+    <div class="main-content" id="mainContent">
         <div class="container">
             <h1><img src="logo.png" alt="Logo" width="90"> EENADU AI JOURNALIST COPILOT</h1>
-        
+
             <label for="sessionId">Session ID:</label>
             <input type="text" id="sessionId" placeholder="Session ID will be auto-generated" readonly>
-        
+
             <button id="startSession">🚀 Start Action</button>
-        
+
+            <h3>Last Updated News</h3>
+            <input type="hidden" id="sessionId">
+            <div id="compiledSpeechText"></div>
+
             <!-- Add a new section to display session list -->
             <div id="sessionColumn">
                 <h3>Available Sessions</h3>
                 <div id="sessionList"></div>
             </div>
-        
+
             <label for="actionSelect">Choose Action:</label>
             <select id="actionSelect">
                 <option value="record">🎙 Start Recording</option>
                 <option value="upload">📁 Upload Audio</option>
             </select>
-        
+
             <div id="recordingControls">
                 <button id="startRecording">🎤 Start Recording</button>
                 <button id="stopRecording" disabled>⏹ Stop Recording</button>
                 <button id="submitRecording" disabled>📤 Submit</button>
                 <p id="transcript">Transcript will appear here...</p>
             </div>
-        
+
             <div id="uploadControls" style="display:none;">
                 <label for="audioFile">Upload Audio:</label>
                 <input type="file" id="audioFile">
                 <button id="uploadAudio">🎧 Upload and Transcribe Audio</button>
             </div>
-        
+
             <button id="endSession">🔚 End Session</button>
-        
+
             <div class="output" id="output">
                 <h3>Output</h3>
                 <pre id="outputText"></pre>
             </div>
-        
+
+            <button id="showDifference" style="display: none;">Show Difference</button>
+
             <div class="loading" id="loading">
                 <span class="loading-symbol"></span>
                 <span id="loadingMessage">Loading, please wait...</span>
             </div>
         </div>
-            </div>
+    </div>
 
     <script>
+            function toggleSessionList() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            if (sidebar.style.display === 'none') {
+                sidebar.style.display = 'block';
+                mainContent.style.marginLeft = '290px'; // Reset margin when sidebar is shown
+                mainContent.style.width = 'calc(100% - 290px)';
+            } else {
+                sidebar.style.display = 'none';
+                mainContent.style.margin = 'auto'; // Center the main content
+                mainContent.style.width = '70%'; // Adjust width when centered
+            }
+        }
         let recognition;
         let isRecording = false;
         let recordedText = "";
 
-        
-    function showLoading(message) {
-        const loadingElement = document.getElementById("loading");
-        loadingElement.innerText = message;
-        loadingElement.style.display = "block";
-    }
+        function showLoading(message) {
+            const loadingElement = document.getElementById("loading");
+            loadingElement.innerText = message;
+            loadingElement.style.display = "block";
+        }
 
-    function hideLoading() {
-        const loadingElement = document.getElementById("loading");
-        loadingElement.style.display = "none";
-    }
+        function hideLoading() {
+            const loadingElement = document.getElementById("loading");
+            loadingElement.style.display = "none";
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const sessionIdElement = document.getElementById('sessionId');
@@ -171,43 +193,81 @@
             // loadSessions();
         });
 
-        async function startSession() {
-            const sessionId = document.getElementById("sessionId").value;
-            const url = "https://eenadu-backend.onrender.com/start-session/";
-            const payload = {
-                session_id: sessionId,
-                language: "te-IN"
-            };
+        // Assuming you have session IDs displayed in a list or column
+document.querySelectorAll(".session-item").forEach(item => {
+    item.addEventListener("click", function() {
+        const sessionId = this.getAttribute("data-session-id");
+        document.getElementById("sessionId").value = sessionId; // Update the sessionId input field
+        fetchCompiledSpeechToText(sessionId); // Fetch and display the compiled speech text
+    });
+});
 
-            try {
-                showLoading("Starting session...");
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(payload)
-                });
+async function fetchCompiledSpeechToText(sessionId) {
+    const url = `http://127.0.0.1:8000/fetch-session/${sessionId}`;
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                document.getElementById("outputText").innerText = data.message;
-                // loadSessions(); // Reload sessions list
-            } catch (error) {
-                console.error("Error starting session:", error);
-            } finally {
-                hideLoading();
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
             }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const data = await response.json();
+        
+        // Display the fetched compiled speech text
+        document.getElementById("compiledSpeechText").innerText = data.compiled_speech_to_text || "No compiled speech text found.";
+    } catch (error) {
+        console.error("Error fetching compiled speech text:", error);
+        document.getElementById("compiledSpeechText").innerText = "Error fetching data.";
+    }
+}
+
+async function startSession() {
+    const sessionId = document.getElementById("sessionId").value;
+    const url = "http://127.0.0.1:8000/start-session/";
+    const payload = {
+        session_id: sessionId,
+        language: "te-IN"
+    };
+
+    try {
+        showLoading("Starting session...");
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        document.getElementById("outputText").innerText = data.message;
+
+        // Fetch and display the compiled speech text
+        fetchCompiledSpeechToText(sessionId);
+    } catch (error) {
+        console.error("Error starting session:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+
 
         async function uploadAudio() {
             const sessionId = document.getElementById("sessionId").value;
             const fileInput = document.getElementById("audioFile");
             const file = fileInput.files[0];
-            const url = "https://eenadu-backend.onrender.com/upload-audio/";
+            const url = "http://127.0.0.1:8000/upload-audio/";
             const formData = new FormData();
             formData.append("session_id", sessionId);
             formData.append("file", file);
@@ -235,7 +295,7 @@
 
         async function submitTeluguText(recordedText) {
             const sessionId = document.getElementById("sessionId").value;
-            const url = "https://eenadu-backend.onrender.com/telugu-text-entry/";
+            const url = "http://127.0.0.1:8000/telugu-text-entry/";
             const payload = {
                 session_id: sessionId,
                 language: recordedText
@@ -261,42 +321,90 @@
                 console.log("API Response:", data); // Log API response for debugging
 
                 // Display the API response in the output container
-                document.getElementById("outputText").innerText = JSON.stringify(data, null, 2);
-            } catch (error) {
-                console.error("Error submitting Telugu text:", error);
-                document.getElementById("outputText").innerText = `Error: ${error.message}`;
-            } finally {
+                document.getElementById("outputText").innerText = "Telugu Spoken Text: " + data.text;
+                // Hide loading spinner after displaying the response
                 hideLoading();
+            } catch (error) {
+                console.error("Error submitting text:", error);
+                hideLoading(); // Hide loading spinner on error
             }
         }
 
         async function endSession() {
-            const sessionId = document.getElementById("sessionId").value;
-            const url = `https://eenadu-backend.onrender.com/end-session/`;
+    const sessionId = document.getElementById("sessionId").value;
+    const url = `http://127.0.0.1:8000/end-session/`;
 
-            try {
-                showLoading("Ending session...");
-                const response = await fetch(url, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ session_id: sessionId })
-                });
+    try {
+        showLoading("Ending session...");
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ session_id: sessionId })
+        });
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                document.getElementById("outputText").innerText = JSON.stringify(data, null, 2);
-                // loadSessions(); // Reload sessions list
-            } catch (error) {
-                console.error("Error ending session:", error);
-            } finally {
-                hideLoading();
-            }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const data = await response.json();
+
+        // Store compiled_speech_to_text and cleaned_speech_to_text.cleaned_text in variables
+        window.compiledSpeechToText = data.compiled_speech_to_text;
+        window.cleanedSpeechToText = data.cleaned_speech_to_text.cleaned_text;
+
+        // Print the entire response
+        document.getElementById("outputText").innerText = `
+                Compiled Speech to Text: ${data.compiled_speech_to_text}
+                Cleaned Speech to Text: ${data.cleaned_speech_to_text.cleaned_text}
+                Category Of Spoken Text: ${data.cleaned_speech_to_text.categorized_text}
+                Location of Spoken Text: ${data.cleaned_speech_to_text.location_text}
+                Cleaned File Text: ${data.cleaned_file_text}
+                Category Of File Text: ${data.cleaned_file_text.categorized_text}
+                Location of File Text: ${data.cleaned_file_text.location_text}
+                `;
+        
+        // Show the 'Show Difference' button
+        document.getElementById("showDifference").style.display = "block";
+    } catch (error) {
+        console.error("Error ending session:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+function showDifferences() {
+    // Use the globally stored data from the endSession function
+    const compiledSpeechToText = window.compiledSpeechToText; // Get from global variable
+    const cleanedSpeechToText = window.cleanedSpeechToText;   // Get from global variable
+
+    // Split the texts into arrays for word-by-word comparison
+    const compiledArray = compiledSpeechToText.split(/\s+/);
+    const cleanedArray = cleanedSpeechToText.split(/\s+/);
+
+    let differenceText = "";
+
+    // Compare word by word and highlight differences
+    compiledArray.forEach((word, index) => {
+        if (word !== cleanedArray[index]) {
+            differenceText += `<span style="background-color: yellow;">${word}</span> `;
+        } else {
+            differenceText += `${word} `;
+        }
+    });
+
+    // Display the difference text in the outputText container
+    document.getElementById("outputText").innerHTML = `
+    Cleaned Speech to Text: ${compiledSpeechToText}
+    Changes made by AI: ${differenceText}
+    `;
+
+}
+
+// Add event listener to "Show Difference" button
+document.getElementById("showDifference").addEventListener("click", showDifferences);
+
         document.addEventListener('DOMContentLoaded', () => {
     const sessionList = document.getElementById('sessionList');
     const sessionIdElement = document.getElementById('sessionId');
@@ -306,7 +414,7 @@
     loadSessions();
 
     async function loadSessions() {
-        const url = "https://eenadu-backend.onrender.com/sessions/";
+        const url = "http://127.0.01:8000/sessions/";
 
         try {
             const response = await fetch(url);
@@ -340,7 +448,7 @@
     }
 
     async function fetchSessionDetails(sessionId) {
-        const url = `https://eenadu-backend.onrender.com/fetch-session/${sessionId}/`;
+        const url = `http://127.0.01:8000/fetch-session/${sessionId}/`;
 
         try {
             showLoading("Fetching session details...");

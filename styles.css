@@ -1,3 +1,4 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -7,6 +8,8 @@ body {
     min-height: 100vh;
     overflow-x: hidden; /* Prevent horizontal scrolling */
 }
+
+/* Add this to your existing CSS file */
 
 .sidebar {
     width: 250px;
@@ -21,6 +24,7 @@ body {
     top: 0;
     left: 0;
     z-index: 1000;
+    transition: transform 0.3s ease-in-out; /* Smooth transition */
 }
 
 .main-content {
@@ -30,120 +34,48 @@ body {
     flex: 1;
     overflow-x: hidden; /* Prevent horizontal scrolling */
     box-sizing: border-box;
+    transition: margin-left 0.3s ease-in-out; /* Smooth transition */
 }
 
-.container {
-    max-width: 100%; /* Ensure the container doesn't exceed the screen width */
-    margin: 0 auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
-    background-color: white;
-    width: 100%;
-    box-sizing: border-box; /* Include padding and border in the element's width */
+.toggle-button {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1100;
+    background-color: transparent;
+    border: none;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    font-size: 0; /* Hide the text inside the button */
 }
 
-h1 {
-    text-align: center;
-    color: #0a5c69;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-}
-
-h1 img {
-    margin-right: 10px;
-    width: 50px; /* Adjust logo size for responsiveness */
-    height: auto;
-}
-
-input[type="text"],
-input[type="file"],
-select,
-button {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border-radius: 5px;
-    border: 1px solid #0a5c69;
-    font-size: 16px;
-    box-sizing: border-box; /* Ensures padding doesn't affect width */
-}
-
-button {
-    background-color: #0a5c69;
+.toggle-button::before {
+    content: "☰";
+    font-size: 24px;
     color: white;
-    cursor: pointer;
-    transition: transform 0.2s ease-in-out;
+    display: block;
 }
 
-button:hover {
-    background-color: #084c59;
-    transform: translateY(-3px);
+.hidden {
+    transform: translateX(-100%); /* Slide sidebar off-screen */
 }
 
-.output {
-    margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    background-color: #ffffff;
+.expanded {
+    margin-left: 0; /* Expand main content to fill screen */
 }
 
-#outputText {
-    white-space: pre-wrap; /* Ensures the JSON text is displayed in multi-line format */
-    word-wrap: break-word; /* Breaks long words to fit within the container */
-    max-height: 400px; /* Adjust this value as needed for your design */
-    overflow: hidden; /* Hides any overflow content */
-}
-
-.loading {
-    text-align: center;
-    display: none;
-    color: #0a5c69;
-    font-weight: bold;
-    font-size: 1.1em;
-}
-
-.loading-symbol {
-    border: 4px solid #0a5c69;
-    border-top: 4px solid #e9f6f7;
-    border-radius: 50%;
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
-    vertical-align: middle;
-}
-
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-.session-item {
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.session-item:hover {
-    background-color: #084c59;
+/* Centering Container When Sidebar is Hidden */
+.centered-content {
+    margin: 0 auto; /* Center the content horizontally */
+    max-width: 800px; /* Adjust max-width as needed */
+    transition: margin 0.3s ease-in-out; /* Smooth transition */
 }
 
 /* Media Queries for Responsive Design */
 @media (max-width: 768px) {
     .sidebar {
         width: 100%;
-        min-width: 100%;
         height: auto;
         position: relative;
         box-shadow: none;
@@ -203,4 +135,155 @@ button:hover {
         font-size: 12px;
         padding: 6px;
     }
+}
+
+/* Container Styles */
+.container {
+    max-width: 100%; /* Ensure the container doesn't exceed the screen width */
+    margin: 0 auto;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    background-color: white;
+    width: 100%;
+    box-sizing: border-box; /* Include padding and border in the element's width */
+}
+
+/* Header Styles */
+h1 {
+    text-align: center;
+    color: #0a5c69;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+h1 img {
+    margin-right: 10px;
+    width: 50px; /* Adjust logo size for responsiveness */
+    height: auto;
+}
+
+/* Form Element Styles */
+input[type="text"],
+input[type="file"],
+select,
+button {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #0a5c69;
+    font-size: 16px;
+    box-sizing: border-box; /* Ensures padding doesn't affect width */
+}
+
+button {
+    background-color: #0a5c69;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+button:hover {
+    background-color: #084c59;
+    transform: translateY(-3px);
+}
+
+/* Output Container Styles */
+.output {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #ffffff;
+}
+
+#outputText {
+    white-space: pre-wrap; /* Ensures the JSON text is displayed in multi-line format */
+    word-wrap: break-word; /* Breaks long words to fit within the container */
+    max-height: 400px; /* Adjust this value as needed for your design */
+    overflow: hidden; /* Hides any overflow content */
+}
+
+/* Loading Styles */
+.loading {
+    text-align: center;
+    display: none;
+    color: #0a5c69;
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+.loading-symbol {
+    border: 4px solid #0a5c69;
+    border-top: 4px solid #e9f6f7;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    margin-right: 10px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.highlight {
+    background-color: yellow;
+}
+
+.diff {
+    background-color: #fdd;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Session Item Styles */
+.session-item {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.session-item:hover {
+    background-color: #084c59;
+}
+
+/* Styles for the toggle button in a small square format */
+.toggle-button-small {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+    width: 30px;
+    height: 30px;
+    background-color: transparent; /* Transparent background */
+    border: 1px solid white; /* White border */
+    border-radius: 50%; /* Round shape */
+    cursor: pointer;
+}
+
+.toggle-button-small::before {
+    content: "☰"; /* Three-line menu icon */
+    font-size: 18px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* When the sidebar is hidden, center the main container */
+.hidden + .main-content {
+    margin: 0 auto; /* Center the main content */
+    max-width: 800px; /* Adjust the max-width as needed */
 }

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EENADU AI JOURNALIST COPILOT</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <!-- Invisible square over the three lines button -->
+    <div class="toggle-square" onclick="toggleSessionList()"></div>
+    <button class="toggle-button" onclick="toggleSessionList()">☰</button>
+
+    <div class="sidebar" id="sidebar">
+        <h2>NEWS HIGHLIGHTS</h2>
+        <div id="sessionList"></div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <div class="container">
+            <h1><img src="logo.png" alt="Logo" width="90"> EENADU AI JOURNALIST COPILOT</h1>
+
+            <label for="sessionId">Session ID:</label>
+            <input type="text" id="sessionId" placeholder="Session ID will be auto-generated" readonly>
+
+            <button id="startSession">🚀 Start Action</button>
+
+            <h3>Last Updated News</h3>
+            <input type="hidden" id="sessionId">
+            <div id="compiledSpeechText"></div>
+
+            <!-- Add a new section to display session list -->
+            <div id="sessionColumn">
+                <h3>Available Sessions</h3>
+                <div id="sessionList"></div>
+            </div>
+
+            <label for="actionSelect">Choose Action:</label>
+            <select id="actionSelect">
+                <option value="record">🎙 Start Recording</option>
+                <option value="upload">📁 Upload Audio</option>
+            </select>
+
+            <div id="recordingControls">
+                <button id="startRecording">🎤 Start Recording</button>
+                <button id="stopRecording" disabled>⏹ Stop Recording</button>
+                <button id="submitRecording" disabled>📤 Submit</button>
+                <p id="transcript">Transcript will appear here...</p>
+            </div>
+
+            <div id="uploadControls" style="display:none;">
+                <label for="audioFile">Upload Audio:</label>
+                <input type="file" id="audioFile">
+                <button id="uploadAudio">🎧 Upload and Transcribe Audio</button>
+            </div>
+
+            <button id="endSession">🔚 End Session</button>
+
+            <div class="output" id="output">
+                <h3>Output</h3>
+                <pre id="outputText"></pre>
+            </div>
+
+            <button id="showDifference" style="display: none;">Show Difference</button>
+
+            <div class="loading" id="loading">
+                <span class="loading-symbol"></span>
+                <span id="loadingMessage">Loading, please wait...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+            function toggleSessionList() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            if (sidebar.style.display === 'none') {
+                sidebar.style.display = 'block';
+                mainContent.style.marginLeft = '290px'; // Reset margin when sidebar is shown
+                mainContent.style.width = 'calc(100% - 290px)';
+            } else {
+                sidebar.style.display = 'none';
+                mainContent.style.margin = 'auto'; // Center the main content
+                mainContent.style.width = '70%'; // Adjust width when centered
+            }
+        }
+        let recognition;
+        let isRecording = false;
+        let recordedText = "";
+
+        function showLoading(message) {
+            const loadingElement = document.getElementById("loading");
+            loadingElement.innerText = message;
+            loadingElement.style.display = "block";
+        }
+
+        function hideLoading() {
+            const loadingElement = document.getElementById("loading");
+            loadingElement.style.display = "none";
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sessionIdElement = document.getElementById('sessionId');
+            const startSessionButton = document.getElementById('startSession');
+            const actionSelect = document.getElementById('actionSelect');
+            const recordingControls = document.getElementById('recordingControls');
+            const uploadControls = document.getElementById('uploadControls');
+            const startRecordingButton = document.getElementById('startRecording');
+            const stopRecordingButton = document.getElementById('stopRecording');
+            const submitButton = document.getElementById('submitRecording');
+            const uploadAudioButton = document.getElementById('uploadAudio');
+            const loadingElement = document.getElementById('loading');
+            const transcriptElement = document.getElementById('transcript');
+            const sessionList = document.getElementById('sessionList');
+
+            // Auto-generate session ID
+            sessionIdElement.value = `session-${Date.now()}`;
+
+            actionSelect.addEventListener('change', () => {
+                if (actionSelect.value === 'record') {
+                    recordingControls.style.display = 'block';
+                    uploadControls.style.display = 'none';
+                } else {
+                    recordingControls.style.display = 'none';
+                    uploadControls.style.display = 'block';
+                }
+            });
+
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.lang = 'te-IN'; // Set the language to Telugu
+                recognition.interimResults = true;
+                recognition.continuous = true; // Enable continuous recording
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            recordedText += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+                    transcriptElement.innerText = "Recorded Text: " + recordedText + interimTranscript;
+                    submitButton.disabled = false;
+                    loadingElement.style.display = 'none';
+                };
+
+                recognition.onerror = (event) => {
+                    console.error("Error occurred in speech recognition: ", event.error);
+                    alert("Speech recognition error: " + event.error);
+                    loadingElement.style.display = 'none';
+                };
+
+                startRecordingButton.addEventListener('click', () => {
+                    if (!isRecording) {
+                        recognition.start();
+                        startRecordingButton.disabled = true;
+                        stopRecordingButton.disabled = false;
+                        isRecording = true;
+                        loadingElement.style.display = 'block';
+                        loadingElement.innerText = 'Recording... Please speak now.';
+                        console.log("Recording started...");
+                    }
+                });
+
+                stopRecordingButton.addEventListener('click', () => {
+                    if (isRecording) {
+                        recognition.stop();
+                        isRecording = false;
+                        console.log("Recording stopped...");
+                        startRecordingButton.disabled = false;
+                        stopRecordingButton.disabled = true;
+                        loadingElement.innerText = 'Processing recorded text...';
+                    }
+                });
+            } else {
+                alert("Your browser does not support Speech Recognition.");
+            }
+
+            submitButton.addEventListener('click', () => {
+                submitTeluguText(recordedText);
+            });
+
+            startSessionButton.addEventListener('click', startSession);
+            uploadAudioButton.addEventListener('click', uploadAudio);
+            document.getElementById('endSession').addEventListener('click', endSession);
+
+            // Load session list
+            // loadSessions();
+        });
+
+        // Assuming you have session IDs displayed in a list or column
+document.querySelectorAll(".session-item").forEach(item => {
+    item.addEventListener("click", function() {
+        const sessionId = this.getAttribute("data-session-id");
+        document.getElementById("sessionId").value = sessionId; // Update the sessionId input field
+        fetchCompiledSpeechToText(sessionId); // Fetch and display the compiled speech text
+    });
+});
+
+async function fetchCompiledSpeechToText(sessionId) {
+    const url = `http://127.0.0.1:8000/fetch-session/${sessionId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Display the fetched compiled speech text
+        document.getElementById("compiledSpeechText").innerText = data.compiled_speech_to_text || "No compiled speech text found.";
+    } catch (error) {
+        console.error("Error fetching compiled speech text:", error);
+        document.getElementById("compiledSpeechText").innerText = "Error fetching data.";
+    }
+}
+
+async function startSession() {
+    const sessionId = document.getElementById("sessionId").value;
+    const url = "http://127.0.0.1:8000/start-session/";
+    const payload = {
+        session_id: sessionId,
+        language: "te-IN"
+    };
+
+    try {
+        showLoading("Starting session...");
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        document.getElementById("outputText").innerText = data.message;
+
+        // Fetch and display the compiled speech text
+        fetchCompiledSpeechToText(sessionId);
+    } catch (error) {
+        console.error("Error starting session:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+
+
+        async function uploadAudio() {
+            const sessionId = document.getElementById("sessionId").value;
+            const fileInput = document.getElementById("audioFile");
+            const file = fileInput.files[0];
+            const url = "http://127.0.0.1:8000/upload-audio/";
+            const formData = new FormData();
+            formData.append("session_id", sessionId);
+            formData.append("file", file);
+            formData.append("language", "te-IN");
+
+            try {
+                showLoading("Uploading and transcribing audio...");
+                const response = await fetch(url, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById("outputText").innerText = "Transcribed Text: " + data.transcribed_text;
+            } catch (error) {
+                console.error("Error uploading audio:", error);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function submitTeluguText(recordedText) {
+            const sessionId = document.getElementById("sessionId").value;
+            const url = "http://127.0.0.1:8000/telugu-text-entry/";
+            const payload = {
+                session_id: sessionId,
+                language: recordedText
+            };
+
+            console.log("Submitting text to Telugu Text Entry API:", payload); // Log payload for debugging
+
+            try {
+                showLoading("Submitting text...");
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("API Response:", data); // Log API response for debugging
+
+                // Display the API response in the output container
+                document.getElementById("outputText").innerText = "Telugu Spoken Text: " + data.text;
+                // Hide loading spinner after displaying the response
+                hideLoading();
+            } catch (error) {
+                console.error("Error submitting text:", error);
+                hideLoading(); // Hide loading spinner on error
+            }
+        }
+
+        async function endSession() {
+    const sessionId = document.getElementById("sessionId").value;
+    const url = `http://127.0.0.1:8000/end-session/`;
+
+    try {
+        showLoading("Ending session...");
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ session_id: sessionId })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // Store compiled_speech_to_text and cleaned_speech_to_text.cleaned_text in variables
+        window.compiledSpeechToText = data.compiled_speech_to_text;
+        window.cleanedSpeechToText = data.cleaned_speech_to_text.cleaned_text;
+
+        // Print the entire response
+        document.getElementById("outputText").innerText = `
+                Compiled Speech to Text: ${data.compiled_speech_to_text}
+                Cleaned Speech to Text: ${data.cleaned_speech_to_text.cleaned_text}
+                Category Of Spoken Text: ${data.cleaned_speech_to_text.categorized_text}
+                Location of Spoken Text: ${data.cleaned_speech_to_text.location_text}
+                Cleaned File Text: ${data.cleaned_file_text}
+                Category Of File Text: ${data.cleaned_file_text.categorized_text}
+                Location of File Text: ${data.cleaned_file_text.location_text}
+                `;
+        
+        // Show the 'Show Difference' button
+        document.getElementById("showDifference").style.display = "block";
+    } catch (error) {
+        console.error("Error ending session:", error);
+    } finally {
+        hideLoading();
+    }
+}
+
+function showDifferences() {
+    // Use the globally stored data from the endSession function
+    const compiledSpeechToText = window.compiledSpeechToText; // Get from global variable
+    const cleanedSpeechToText = window.cleanedSpeechToText;   // Get from global variable
+
+    // Split the texts into arrays for word-by-word comparison
+    const compiledArray = compiledSpeechToText.split(/\s+/);
+    const cleanedArray = cleanedSpeechToText.split(/\s+/);
+
+    let differenceText = "";
+
+    // Compare word by word and highlight differences
+    compiledArray.forEach((word, index) => {
+        if (word !== cleanedArray[index]) {
+            differenceText += `<span style="background-color: yellow;">${word}</span> `;
+        } else {
+            differenceText += `${word} `;
+        }
+    });
+
+    // Display the difference text in the outputText container
+    document.getElementById("outputText").innerHTML = `
+    Cleaned Speech to Text: ${cleanedSpeechToText}
+    Changes made by AI: ${differenceText}
+    `;
+
+}
+
+// Add event listener to "Show Difference" button
+document.getElementById("showDifference").addEventListener("click", showDifferences);
+
+        document.addEventListener('DOMContentLoaded', () => {
+    const sessionList = document.getElementById('sessionList');
+    const sessionIdElement = document.getElementById('sessionId');
+    const outputText = document.getElementById('outputText');
+    
+    // Load sessions when the page is loaded
+    loadSessions();
+
+    async function loadSessions() {
+    const url = "http://127.0.0.1:8000/sessions/"; // Corrected URL
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        sessionList.innerHTML = '';
+
+        if (data.sessions && data.sessions.length > 0) {
+            for (const sessionId of data.sessions) {
+                // Fetch session details to get the title
+                const sessionDetails = await fetchSessionDetails(sessionId);
+                
+                const div = document.createElement('div');
+                div.className = 'session-item';
+                div.textContent = sessionDetails.title || sessionId; // Use title or fallback to sessionId
+                div.setAttribute("data-session-id", sessionId);
+                div.onclick = () => updateSessionId(sessionId);
+                sessionList.appendChild(div);
+            }
+        } else {
+            sessionList.innerHTML = '<div>No sessions available</div>';
+        }
+    } catch (error) {
+        console.error("Error loading sessions:", error);
+        sessionList.innerHTML = '<div>Error loading sessions</div>';
+    }
+}
+
+async function fetchSessionDetails(sessionId) {
+    const url = `http://127.0.0.1:8000/fetch-session/${sessionId}/`;
+
+    try {
+        showLoading("Fetching session details...");
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return {
+            title: data.cleaned_speech_to_text.title || "No Title", // Fetch title or fallback
+            compiledSpeechToText: data.compiled_speech_to_text,
+            cleanedSpeechToText: data.cleaned_speech_to_text.cleaned_text,
+            cleanedFileText: data.cleaned_file_text
+        };
+    } catch (error) {
+        console.error("Error fetching session details:", error);
+        return {
+            title: "Error fetching title"
+        };
+    } finally {
+        hideLoading();
+    }
+}
+
+
+async function updateSessionId(sessionId) {
+    sessionIdElement.value = sessionId;
+    await fetchSessionDetails(sessionId);
+    fetchCompiledSpeechToText(sessionId);
+}
+
+});
+
+    </script>
+</body>
+
+</html>
